@@ -63,7 +63,7 @@ using namespace boost::numeric::ublas;
 namespace mpi = boost::mpi;
 
 int i,j,k,m,n;
-const int l = 50, b = 199; // l*(b+1)  = d+1
+const int l = 50, b =19; // l*(b+1)  = d+1
 const int d = l*(b+1) - 1;
 
 matrix<float > Pr(b+1, b+1);
@@ -71,7 +71,6 @@ triangular_matrix<float, unit_lower> tul(b+1, b+1);
 triangular_matrix<float, lower> tup(b+1, b+1);
 matrix<float> P(d+1, d+1);
 vector<float> moments(d+1);
-
 
 void u_solver(boost::numeric::ublas::vector<float > mvs, int row , int colm) // solves for U_01 column per column
 {
@@ -158,7 +157,7 @@ int main()
         for ( m = 0; m < P.size2(); m++ )
         {
              P(n,m) = unif(re);
-	     outfile2 << std::scientific << P(n,m) << std::endl;
+	         outfile2 << std::scientific << P(n,m) << std::endl;
         }
     }
 
@@ -358,7 +357,7 @@ int main()
 
         std::ofstream outfile5;
 
-	outfile5.open("times.txt", std::ios_base::out);
+     	outfile5.open("times.txt", std::ios_base::out);
 
         outfile5 << duration.count() << " seconds to factorize with GPU the matrix with dimension " << d+1 << std::endl;
 

@@ -1,47 +1,43 @@
-#include <math.h>
-#include <iostream>
 #include "cuda_runtime.h"
 #include "kernel.h"
-#include <stdlib.h>
 
-using namespace std;
 
-__global__ void matrixMultKernel(float* A, float* B, float* C, int N, int M) {
+#ifndef TILE
+#define TILE 32
+#endif
 
-    int ROW = blockIdx.y*blockDim.y+threadIdx.y;
-    int COL = blockIdx.x*blockDim.x+threadIdx.x;
 
-    //float tmpSum = 0.0f;
+// Row-major index helper: ld = number of columns 
 
-    if (ROW < N && COL < N) {
-        // each thread computes one element of the block sub-matrix
-	float tmpSum = 0;
+__device__ __forceinline__ int idx(int r, int c, int ld) {
+    return r * ld + c;
+}
 
-        for (int i = 0; i < M; i++) {
-           // tmpSum += A[ROW * M + i] * B[i * N + COL];
-	      tmpSum = __fadd_rn(tmpSum, __fmul_rn(A[ROW * M + i] , B[i * N + COL]));
-        }
+__global__ void matrixMultKernel(const float* A,const float* B, float* C, int N, int M) {
 
-	C[ROW * N + COL] = tmpSum;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= N || col >= N)  return;
+
+	float acc = 0.0f;
+
+    for (int k = 0; k < M; k++) {
+         // C[NxN] = A[NxM] * B[MxN], all row-major
+        acc = __fmaf_rn(A[idx(row, k, M)], B[idx(k, col, N)], acc);
     }
- 
+	C[idx(row, col, N)] = acc;
 }
 
 
-void matrixMult(float *A, float *B, float *C, int N, int M){
+void matrixMult(const float *A, const float *B, float *C, int N, int M){
 
-    // declare the number of blocks per grid and the number of threads per block
-    // use 1 to 512 threads per block
-    dim3 threadsPerBlock(N, N);
-    dim3 blocksPerGrid(1, 1);
-    
-    if (N > 32){
-        threadsPerBlock.x = 32;
-        threadsPerBlock.y = 32;
-        blocksPerGrid.x = ceil(double(N)/double(threadsPerBlock.x));
-        blocksPerGrid.y = ceil(double(N)/double(threadsPerBlock.y));
-    }
-    
+    if (N <= 0 || M <= 0) return; // nothing to do
 
-    matrixMultKernel<<<blocksPerGrid,threadsPerBlock>>>(A, B, C, N, M);
+    dim3 block(TILE, TILE, 1);
+    dim3 grid((N + block.x - 1) / block.x,
+              (N + block.y - 1) / block.y, 1);
+
+    matrixMultKernel<<<grid,block>>>(A, B, C, N, M);
+
 }
