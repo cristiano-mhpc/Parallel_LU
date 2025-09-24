@@ -1,0 +1,13 @@
+# Ignore object files and final executable generated from the sources
+*.o
+auto                # the linked executable
+
+# Optional: if you create a build directory
+build/
+
+# Optional: if you use CMake in the future
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
