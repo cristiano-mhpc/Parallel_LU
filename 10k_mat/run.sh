@@ -17,7 +17,7 @@ module load boost/1.83.0--openmpi--4.1.6--gcc--12.2.0
 
 module load cuda
 
-mpirun --oversubscribe -np 2 ./auto
+mpirun -np 2 ./auto
 
 
 
