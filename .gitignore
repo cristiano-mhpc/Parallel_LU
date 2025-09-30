@@ -1,6 +1,8 @@
 # Ignore object files and final executable generated from the sources
 *.o
 auto                # the linked executable
+*.swp
+
 
 # Optional: if you create a build directory
 build/
